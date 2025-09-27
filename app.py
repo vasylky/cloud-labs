@@ -17,15 +17,6 @@ def get_secret():
     secret = client.get_secret_value(SecretId="airlinedb/credentials")
     return json.loads(secret['SecretString'])
 
-def get_connection():
-    creds = get_secret()
-    return mysql.connector.connect(
-        host=creds["host"],
-        user=creds["user"],
-        password=creds["password"],
-        database=creds["database"]
-    )
-
 @app.route('/users', methods=['GET'])
 def get_users():
     conn = get_connection()
