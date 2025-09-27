@@ -12,7 +12,7 @@ app.config["JWT_SECRET_KEY"] = "super_secret_key"
 jwt = JWTManager(app)
 
 def get_secret():
-    client = boto3.client('secretsmanager', region_name="eu-central-1")
+    client = boto3.client('secretsmanager', region_name="eu-north-1")
     secret = client.get_secret_value(SecretId="airlinedb/credentials")
     return json.loads(secret['SecretString'])
 
