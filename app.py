@@ -20,9 +20,10 @@ def get_connection():
     creds = get_secret()
     return mysql.connector.connect(
         host=creds["host"],
-        user=creds["user"],
+        user=creds["username"],      
         password=creds["password"],
-        database=creds["database"]
+        database="airlinedb",           
+        port=creds["port"]
     )
 
 @app.route('/users', methods=['GET'])
