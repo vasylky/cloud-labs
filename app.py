@@ -3,7 +3,6 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager, create_access_token, jwt_required, get_jwt_identity
 )
-from db import get_connection
 import boto3, json, mysql.connector
 
 app = Flask(__name__)
@@ -16,6 +15,15 @@ def get_secret():
     client = boto3.client('secretsmanager', region_name="eu-central-1")
     secret = client.get_secret_value(SecretId="airlinedb/credentials")
     return json.loads(secret['SecretString'])
+
+def get_connection():
+    creds = get_secret()
+    return mysql.connector.connect(
+        host=creds["host"],
+        user=creds["user"],
+        password=creds["password"],
+        database=creds["database"]
+    )
 
 @app.route('/users', methods=['GET'])
 def get_users():
