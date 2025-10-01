@@ -85,7 +85,7 @@ def get_user(user_id):
         description: ID of the user
     responses:
       200:
-        description: User details.
+        description: User details get lol check.
       404:
         description: User not found..
     """
