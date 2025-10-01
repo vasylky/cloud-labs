@@ -87,7 +87,7 @@ def get_user(user_id):
       200:
         description: User details
       404:
-        description: User not found
+        description: User not found.
     """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
