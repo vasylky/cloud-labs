@@ -24,5 +24,6 @@ jobs:
             cd /home/ec2-user/cloud/cloud-labs
             git fetch --all
             git pull origin main
+            sudo systemctl restart flaskapp
 
             
