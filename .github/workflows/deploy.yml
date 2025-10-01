@@ -21,6 +21,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            cd /home/ec2-user/cloud/cloud-labs
+            cd /home/ec2-user
+            cd cloud/cloud-labs
             git fetch --all
             
