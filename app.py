@@ -3,6 +3,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager, create_access_token, jwt_required, get_jwt_identity
 )
+from flasgger import Swagger
 import boto3, json, mysql.connector
 
 app = Flask(__name__)
@@ -10,6 +11,14 @@ bcrypt = Bcrypt(app)
 
 app.config["JWT_SECRET_KEY"] = "super_secret_key"
 jwt = JWTManager(app)
+
+# Swagger
+app.config['SWAGGER'] = {
+    'title': 'Airline API',
+    'uiversion': 3
+}
+swagger = Swagger(app)
+
 
 def get_secret():
     client = boto3.client('secretsmanager', region_name="eu-north-1")
@@ -26,8 +35,32 @@ def get_connection():
         port=creds["port"]
     )
 
+# =============================
+# USERS
+# =============================
+
 @app.route('/users', methods=['GET'])
 def get_users():
+    """
+    Get all users
+    ---
+    tags:
+      - Users
+    responses:
+      200:
+        description: List of users
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: integer
+              username:
+                type: string
+              email:
+                type: string
+    """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT user_id, username, email FROM users")
@@ -39,6 +72,23 @@ def get_users():
 
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    """
+    Get user by ID
+    ---
+    tags:
+      - Users
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the user
+    responses:
+      200:
+        description: User details
+      404:
+        description: User not found
+    """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT user_id, username, email FROM users WHERE user_id=%s", (user_id,))
@@ -50,6 +100,34 @@ def get_user(user_id):
 
 @app.route('/users', methods=['POST'])
 def create_user():
+    """
+    Create a new user
+    ---
+    tags:
+      - Users
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - username
+            - email
+            - password
+          properties:
+            username:
+              type: string
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      201:
+        description: User created
+      400:
+        description: Error creating user
+    """
     data = request.get_json()
     username = data['username']
     email = data['email']
@@ -71,6 +149,31 @@ def create_user():
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
+    """
+    Update user
+    ---
+    tags:
+      - Users
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            email:
+              type: string
+    responses:
+      200:
+        description: User updated
+      400:
+        description: Error
+    """
     data = request.get_json()
     conn = get_connection()
     cursor = conn.cursor()
@@ -88,6 +191,22 @@ def update_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
+    """
+    Delete user
+    ---
+    tags:
+      - Users
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: User deleted
+      400:
+        description: Error
+    """
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -106,6 +225,31 @@ def delete_user(user_id):
 
 @app.route('/login', methods=['POST'])
 def login():
+    """
+    User login
+    ---
+    tags:
+      - Auth
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      200:
+        description: JWT token
+      401:
+        description: Invalid credentials
+    """
     data = request.get_json()
     email = data['email']
     password = data['password']
@@ -129,6 +273,15 @@ def login():
 
 @app.route('/flights', methods=['GET'])
 def get_flights():
+    """
+    Get all flights
+    ---
+    tags:
+      - Flights
+    responses:
+      200:
+        description: List of flights
+    """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM flights")
@@ -140,6 +293,37 @@ def get_flights():
 
 @app.route('/flights', methods=['POST'])
 def add_flight():
+    """
+    Add a flight
+    ---
+    tags:
+      - Flights
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            airline_id:
+              type: integer
+            flight_number:
+              type: string
+            departure_airport_id:
+              type: integer
+            arrival_airport_id:
+              type: integer
+            departure_time:
+              type: string
+            arrival_time:
+              type: string
+            baggage_allowance:
+              type: string
+    responses:
+      201:
+        description: Flight added
+      400:
+        description: Error
+    """
     data = request.get_json()
     conn = get_connection()
     cursor = conn.cursor()
@@ -168,6 +352,32 @@ def add_flight():
 @app.route('/tickets', methods=['POST'])
 @jwt_required()
 def buy_ticket():
+    """
+    Buy ticket
+    ---
+    tags:
+      - Tickets
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - flight_id
+            - price
+          properties:
+            flight_id:
+              type: integer
+            price:
+              type: number
+    responses:
+      201:
+        description: Ticket purchased
+      400:
+        description: Error
+    """
     user_id = get_jwt_identity()
     data = request.get_json()
     conn = get_connection()
@@ -186,6 +396,20 @@ def buy_ticket():
 
 @app.route('/tickets/<int:user_id>', methods=['GET'])
 def get_user_tickets(user_id):
+    """
+    Get tickets for user
+    ---
+    tags:
+      - Tickets
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: List of tickets
+    """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM tickets WHERE user_id=%s", (user_id,))
@@ -200,6 +424,20 @@ def get_user_tickets(user_id):
 
 @app.route('/purchase_history/<int:user_id>', methods=['GET'])
 def get_purchase_history(user_id):
+    """
+    Get purchase history for a user
+    ---
+    tags:
+      - Purchase History
+    parameters:
+      - name: user_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: Purchase history
+    """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -221,6 +459,35 @@ def get_purchase_history(user_id):
 @app.route('/reviews', methods=['POST'])
 @jwt_required()
 def add_review():
+    """
+    Add review
+    ---
+    tags:
+      - Reviews
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - rating
+            - comment
+            - flight_id
+          properties:
+            rating:
+              type: integer
+            comment:
+              type: string
+            flight_id:
+              type: integer
+    responses:
+      201:
+        description: Review added
+      400:
+        description: Error
+    """
     user_id = get_jwt_identity()
     data = request.get_json()
     conn = get_connection()
@@ -239,6 +506,20 @@ def add_review():
 
 @app.route('/reviews/<int:flight_id>', methods=['GET'])
 def get_reviews(flight_id):
+    """
+    Get reviews for a flight
+    ---
+    tags:
+      - Reviews
+    parameters:
+      - name: flight_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: List of reviews
+    """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM flight_reviews WHERE flights_flight_id=%s", (flight_id,))
@@ -247,7 +528,8 @@ def get_reviews(flight_id):
     conn.close()
     return jsonify(reviews)
 
+
 # =============================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
