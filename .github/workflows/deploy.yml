@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to ec2
 
 on:
   push:
@@ -11,17 +11,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy to ec2
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
-            cd cloud || git clone https://github.com/vasylky/cloud-labs.git cloud-labs
-            cd cloud-labs
-            git pull origin main
-            pip install -r requirements.txt
-
+            cd /home/ec2-user/cloud/cloud-labs
+            git fetch --all
+            
