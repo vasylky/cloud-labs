@@ -20,10 +20,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/${{ secrets.EC2_USER }}/cloud-labs || git clone https://github.com/vasylky/cloud-labs.git cloud-labs
+            cd cloud || git clone https://github.com/vasylky/cloud-labs.git cloud-labs
             cd cloud-labs
             git pull origin main
-            python3 -m venv venv || true
-            source venv/bin/activate
             pip install -r requirements.txt
-            sudo systemctl restart flaskapp
+
