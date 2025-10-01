@@ -17,11 +17,12 @@ jobs:
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            cd /home/ec2-user
-            cd cloud/cloud-labs
+            cd /home/ec2-user/cloud/cloud-labs
             git fetch --all
+            git pull origin main
+
             
