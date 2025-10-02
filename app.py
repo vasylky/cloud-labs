@@ -227,7 +227,7 @@ def delete_user(user_id):
 def login():
     """
     User login
-    ---
+    --- 
     tags:
       - Auth
     parameters:
@@ -452,56 +452,56 @@ def get_purchase_history(user_id):
     conn.close()
     return jsonify(history)
 
-# =============================
-# REVIEWS
-# =============================
+# # =============================
+# # REVIEWS
+# # =============================
 
-@app.route('/reviews', methods=['POST'])
-@jwt_required()
-def add_review():
-    """
-    Add review
-    ---
-    tags:
-      - Reviews
-    security:
-      - Bearer: []
-    parameters:
-      - in: body
-        name: body
-        schema:
-          type: object
-          required:
-            - rating
-            - comment
-            - flight_id
-          properties:
-            rating:
-              type: integer
-            comment:
-              type: string
-            flight_id:
-              type: integer
-    responses:
-      201:
-        description: Review added
-      400:
-        description: Error
-    """
-    user_id = get_jwt_identity()
-    data = request.get_json()
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT INTO flight_reviews (rating, comment, users_user_id, flights_flight_id) VALUES (%s,%s,%s,%s)",
-                       (data['rating'], data['comment'], user_id, data['flight_id']))
-        conn.commit()
-        return jsonify({"message": "Review added"}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    finally:
-        cursor.close()
-        conn.close()
+# @app.route('/reviews', methods=['POST'])
+# @jwt_required()
+# def add_review():
+#     """
+#     Add review
+#     ---
+#     tags:
+#       - Reviews
+#     security:
+#       - Bearer: []
+#     parameters:
+#       - in: body
+#         name: body
+#         schema:
+#           type: object
+#           required:
+#             - rating
+#             - comment
+#             - flight_id
+#           properties:
+#             rating:
+#               type: integer
+#             comment:
+#               type: string
+#             flight_id:
+#               type: integer
+#     responses:
+#       201:
+#         description: Review added
+#       400:
+#         description: Error
+#     """
+#     user_id = get_jwt_identity()
+#     data = request.get_json()
+#     conn = get_connection()
+#     cursor = conn.cursor()
+#     try:
+#         cursor.execute("INSERT INTO flight_reviews (rating, comment, users_user_id, flights_flight_id) VALUES (%s,%s,%s,%s)",
+#                        (data['rating'], data['comment'], user_id, data['flight_id']))
+#         conn.commit()
+#         return jsonify({"message": "Review added"}), 201
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 400
+#     finally:
+#         cursor.close()
+#         conn.close()
 
 
 @app.route('/reviews/<int:flight_id>', methods=['GET'])
