@@ -408,7 +408,7 @@ def get_user_tickets(user_id):
         required: true
     responses:
       200:
-        description: List of tickets
+        description: List of ticket
     """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
