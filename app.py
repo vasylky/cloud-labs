@@ -270,7 +270,137 @@ def login():
 # =============================
 # FLIGHTS
 # =============================
+# =============================
+# AIRPORTS
+# =============================
 
+@app.route('/airports', methods=['GET'])
+def get_airports():
+    """
+    Get all airports
+    ---
+    tags:
+      - Airports
+    responses:
+      200:
+        description: List of airports
+    """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM airports")
+    airports = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(airports)
+
+
+@app.route('/airports', methods=['POST'])
+def add_airport():
+    """
+    Add a new airport
+    ---
+    tags:
+      - Airports
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - location
+          properties:
+            name:
+              type: string
+            location:
+              type: string
+    responses:
+      201:
+        description: Airport added
+      400:
+        description: Error
+    """
+    data = request.get_json()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO airports (name, location) VALUES (%s, %s)",
+                       (data['name'], data['location']))
+        conn.commit()
+        return jsonify({"message": "Airport added"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+# =============================
+# AIRLINES
+# =============================
+
+@app.route('/airlines', methods=['GET'])
+def get_airlines():
+    """
+    Get all airlines
+    ---
+    tags:
+      - Airlines
+    responses:
+      200:
+        description: List of airlines
+    """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM airlines")
+    airlines = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(airlines)
+
+
+@app.route('/airlines', methods=['POST'])
+def add_airline():
+    """
+    Add a new airline
+    ---
+    tags:
+      - Airlines
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+            - base_airport_id
+          properties:
+            name:
+              type: string
+            base_airport_id:
+              type: integer
+    responses:
+      201:
+        description: Airline added
+      400:
+        description: Error
+    """
+    data = request.get_json()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO airlines (name, base_airport_id) VALUES (%s, %s)",
+                       (data['name'], data.get('base_airport_id')))
+        conn.commit()
+        return jsonify({"message": "Airline added"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+        
 @app.route('/flights', methods=['GET'])
 def get_flights():
     """
